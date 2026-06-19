@@ -85,6 +85,8 @@ export default function App() {
 
   // ── Auth state ───────────────────────────────────────────────────────────────
   useEffect(() => {
+    if (!supabaseConfigured) { setReady(true); return; }
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       if (s) loadData(s);
