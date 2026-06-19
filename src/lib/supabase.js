@@ -1,10 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url = import.meta.env.VITE_SUPABASE_URL  || "";
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const url = (import.meta.env.VITE_SUPABASE_URL || "").trim();
+const key = (import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim();
 
-export const supabaseConfigured = Boolean(url && key);
+const validUrl = url.startsWith("https://") || url.startsWith("http://");
+
+export const supabaseConfigured = Boolean(url && key && validUrl);
 
 export const supabase = supabaseConfigured
-  ? createClient(url, key)
+  ? (() => { try { return createClient(url, key); } catch { return null; } })()
   : null;
