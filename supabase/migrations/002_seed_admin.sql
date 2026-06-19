@@ -8,10 +8,11 @@ DO $$
 DECLARE
   v_uid UUID := gen_random_uuid();
 BEGIN
-  -- Remove usuário existente com esse e-mail (se houver)
-  DELETE FROM auth.users WHERE email = 'raissa.caldas@msbbrasil.com';
+  -- Remove entradas anteriores com esse e-mail
+  DELETE FROM auth.identities WHERE provider_id = 'raissa.caldas@msbbrasil.com';
+  DELETE FROM auth.users     WHERE email        = 'raissa.caldas@msbbrasil.com';
 
-  -- Cria o usuário no Supabase Auth com todos os campos obrigatórios
+  -- Cria o usuário no Supabase Auth
   INSERT INTO auth.users (
     id,
     instance_id,
@@ -44,7 +45,28 @@ BEGIN
     ''
   );
 
-  -- Garante que o perfil admin existe (o trigger já cria, mas por segurança)
+  -- Cria a identidade de e-mail (obrigatório para login por senha)
+  INSERT INTO auth.identities (
+    id,
+    user_id,
+    provider_id,
+    identity_data,
+    provider,
+    last_sign_in_at,
+    created_at,
+    updated_at
+  ) VALUES (
+    v_uid::text,
+    v_uid,
+    'raissa.caldas@msbbrasil.com',
+    jsonb_build_object('sub', v_uid::text, 'email', 'raissa.caldas@msbbrasil.com'),
+    'email',
+    NOW(),
+    NOW(),
+    NOW()
+  );
+
+  -- Garante o perfil admin
   INSERT INTO public.profiles (id, nome, email, perfil)
   VALUES (v_uid, 'Raissa Caldas', 'raissa.caldas@msbbrasil.com', 'admin')
   ON CONFLICT (id) DO UPDATE
